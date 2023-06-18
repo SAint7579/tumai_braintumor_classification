@@ -1,49 +1,37 @@
+import pandas as pd
+import numpy as np # linear algebra
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from glob import glob
-from sklearn.model_selection import train_test_split
-import os
-import shutil
+from tensorflow.keras.preprocessing import image_dataset_from_directory
+from tensorflow.keras import layers
+from tensorflow import keras
+
 
 
 def create_train_test_dataset(train_directory, test_directory):
 
-    ## Create a train generator
-    train_datagen = ImageDataGenerator(
-        rescale=1./255,
-        validation_split=0.2,
-        rotation_range=20,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True,
-        vertical_flip=True,
-        shear_range=0.2,
-        zoom_range=0.2,
-        fill_mode='nearest'
-        )
-    
-    test_datagen = ImageDataGenerator(rescale=1./255)
+    img_height, img_width = 224,224
+    batch_size = 32
 
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+    train_directory,
+    color_mode='grayscale',
+    labels='inferred',
+    label_mode='binary',
+    validation_split=0.2,
+    subset="training",
+    seed=123,
+    image_size=(img_height, img_width),
+    interpolation='nearest',
+    batch_size=batch_size)
 
-    train_generator = train_datagen.flow_from_directory(
-        train_directory,
-        # target_size=(224, 224),
-        # batch_size=32,
-        # class_mode='categorical',
-        # subset='training',
-        # shuffle=True,
-    )
+    valid_ds = tf.keras.utils.image_dataset_from_directory(
+    test_directory,
+    color_mode='grayscale',
+    image_size=(img_height, img_width),
+    interpolation='nearest',
+    batch_size=batch_size)
 
-    test_generator = test_datagen.flow_from_directory(
-        test_directory,
-        # target_size=(224, 224),
-        # batch_size=32,
-        # class_mode='categorical',
-        # subset='validation',
-        # shuffle=True,
-    )
-
-    return train_generator, test_generator
+    return train_ds, valid_ds
 
 
 if __name__ == '__main__':
